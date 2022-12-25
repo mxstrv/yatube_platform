@@ -124,23 +124,21 @@ def follow_index(request):
 
 @login_required
 def profile_follow(request, username):
-    current_user = request.user.id
     user_to_follow = User.objects.get(username=username)
     if (Follow.objects.filter
-        (user_id=current_user, author_id=user_to_follow.id).exists()
-            or current_user == user_to_follow.id):
+        (user_id=request.user.id, author_id=user_to_follow.id).exists()
+            or request.user.id == user_to_follow.id):
         return redirect('posts:profile', user_to_follow)
     Follow.objects.create(
-        user_id=current_user,
+        user_id=request.user.id,
         author_id=user_to_follow.id)
     return redirect('posts:profile', user_to_follow)
 
 
 @login_required
 def profile_unfollow(request, username):
-    current_user = request.user.id
-    user_to_follow = User.objects.get(username=username)
+    user_to_unfollow = User.objects.get(username=username)
     Follow.objects.filter(
-        user_id=current_user,
-        author_id=user_to_follow.id).delete()
-    return redirect('posts:profile', user_to_follow)
+        user_id=request.user.id,
+        author_id=user_to_unfollow.id).delete()
+    return redirect('posts:profile', user_to_unfollow)

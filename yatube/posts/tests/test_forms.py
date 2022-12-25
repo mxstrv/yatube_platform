@@ -7,7 +7,7 @@ from django.contrib.auth import get_user_model
 from http import HTTPStatus
 from django.core.files.uploadedfile import SimpleUploadedFile
 
-from ..models import Post, Group
+from ..models import Post, Group, Comment
 
 TEMP_MEDIA_ROOT = tempfile.mkdtemp(dir=settings.BASE_DIR)
 
@@ -108,3 +108,31 @@ class PostCreateTest(TestCase):
         self.assertEqual(Post.objects.count(), 1)
         self.assertEqual(Post.objects.filter(
             group_id=self.group.pk).count(), 0)
+
+    def test_comments(self):
+        """Проверка создания комментария авторизованным пользователем
+        и гостем."""
+        Post.objects.create(
+            text='test text',
+            author=self.authorized_user,
+            group=self.group,
+        )
+
+        # Пишем комментарий к первому посту
+        self.authorized_client.post(
+            reverse('posts:add_comment', kwargs={'post_id': 1}),
+            data={'text': 'test comment'},
+            follow=True,
+        )
+        comment = Comment.objects.get(post_id=1)
+        self.assertEqual(comment.text, 'test comment')
+
+        # Пытаемся написать комментарий неавторизированным пользователем
+        guest_comment = self.client.post(
+            reverse('posts:add_comment', kwargs={'post_id': 1}),
+            data={'text': 'test comment by guest'},
+            follow=True,
+        )
+        self.assertRedirects(guest_comment,
+                             '/auth/login/?next=/posts/1/comment/')
+        self.assertEqual(Comment.objects.count(), 1)

@@ -9,7 +9,7 @@ from django.urls import reverse
 from django import forms
 from django.db.models.fields.files import ImageFieldFile
 
-from ..models import Post, Group, Comment, Follow
+from ..models import Post, Group, Follow
 
 User = get_user_model()
 POSTS_AMOUNT = 17
@@ -157,28 +157,6 @@ class PostPagesTest(TestCase):
                          PAGINATOR_REQUIRED_AMOUNT)
         self.assertEqual(len(response_profile.context['page_obj']),
                          PAGINATOR_REQUIRED_AMOUNT)
-
-    def test_comments(self):
-        """Проверка создания комментария авторизованным пользователем
-        и гостем."""
-        # Пишем комментарий к первому посту
-        self.authorized_user.post(
-            reverse('posts:add_comment', kwargs={'post_id': 1}),
-            data={'text': 'test comment'},
-            follow=True,
-        )
-        comment = Comment.objects.get(post_id=1)
-        self.assertEqual(comment.text, 'test comment')
-
-        # Пытаемся написать комментарий неавторизированным пользователем
-        guest_comment = self.client.post(
-            reverse('posts:add_comment', kwargs={'post_id': 1}),
-            data={'text': 'test comment by guest'},
-            follow=True,
-        )
-        self.assertRedirects(guest_comment,
-                             '/auth/login/?next=/posts/1/comment/')
-        self.assertEqual(Comment.objects.count(), 1)
 
     def test_following_unfollowing(self):
         """ Проверка на подписку и отписку от пользователя."""
