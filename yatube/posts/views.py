@@ -29,10 +29,13 @@ def profile(request, username):
     author = User.objects.get(username=username)
     posts = author.posts.select_related('group')
     page_obj = my_paginator(posts, request)
-    following = Follow.objects.filter(
-        user_id=request.user,
-        author_id=author.id,
-    ).exists()
+    if request.user.is_authenticated:
+        following = Follow.objects.filter(
+            user_id=request.user,
+            author_id=author.id,
+        ).exists()
+    else:
+        following = False
     context = {
         'posts': posts,
         'page_obj': page_obj,
@@ -125,8 +128,7 @@ def profile_follow(request, username):
     user_to_follow = User.objects.get(username=username)
     if (Follow.objects.filter
         (user_id=current_user, author_id=user_to_follow.id).exists()
-            or
-            current_user == user_to_follow.id):
+            or current_user == user_to_follow.id):
         return redirect('posts:profile', user_to_follow)
     Follow.objects.create(
         user_id=current_user,

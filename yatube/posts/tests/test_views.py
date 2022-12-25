@@ -1,6 +1,5 @@
 import shutil
 import tempfile
-import time
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
@@ -178,12 +177,7 @@ class PostPagesTest(TestCase):
             follow=True,
         )
         self.assertRedirects(guest_comment,
-                             f'/auth/login/?next=/posts/1/comment/')
+                             '/auth/login/?next=/posts/1/comment/')
         self.assertEqual(Comment.objects.count(), 1)
 
-    def test_follow(self):
-    pass
-
-
-
-
+    def test_following_unfollowing(self):
