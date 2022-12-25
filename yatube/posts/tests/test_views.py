@@ -9,7 +9,7 @@ from django.urls import reverse
 from django import forms
 from django.db.models.fields.files import ImageFieldFile
 
-from ..models import Post, Group, Comment
+from ..models import Post, Group, Comment, Follow
 
 User = get_user_model()
 POSTS_AMOUNT = 17
@@ -181,3 +181,38 @@ class PostPagesTest(TestCase):
         self.assertEqual(Comment.objects.count(), 1)
 
     def test_following_unfollowing(self):
+        """ Проверка на подписку и отписку от пользователя."""
+        # Создаем второго пользователя
+        self.authorized_client_2 = User.objects.create(
+            username='test_username_2')
+        # Проверка подписки
+        self.authorized_user.post(
+            reverse('posts:profile_follow',
+                    kwargs={'username': 'test_username_2'})
+        )
+        self.assertTrue(Follow.objects.filter(
+            user_id=1, author_id=2).exists())
+        # Проверка отписки
+        self.authorized_user.post(
+            reverse('posts:profile_unfollow',
+                    kwargs={'username': 'test_username_2'}))
+        self.assertFalse(Follow.objects.filter(
+            user_id=1, author_id=2).exists())
+
+    def test_following_post_are_shown(self):
+        """ Проверка на отображение постов в follow."""
+        self.authorized_client_2 = User.objects.create(
+            username='test_username_2')
+        Post.objects.create(
+            text='test text for followers',
+            author_id=2,
+        )
+        self.authorized_user.post(
+            reverse('posts:profile_follow',
+                    kwargs={'username': 'test_username_2'}))
+        response = self.authorized_user.get(
+            reverse('posts:follow_index')
+        )
+        self.assertEqual(
+            response.context['page_obj'][0].text, 'test text for followers'
+        )
