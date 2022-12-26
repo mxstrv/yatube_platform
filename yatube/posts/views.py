@@ -1,5 +1,4 @@
 from django.shortcuts import render, get_object_or_404, redirect
-# from django.views.decorators.cache import cache_page
 from django.contrib.auth.decorators import login_required
 
 from .models import Post, Group, User, Comment, Follow
@@ -9,9 +8,6 @@ from .paginators import my_paginator
 POST_DETAIL_FIRST_LETTERS = 30
 
 
-# @cache_page(20, key_prefix='index_page')
-# Из-за кэширования не проходятся тесты на соответствие шаблонов
-# на главной странице
 def index(request):
     posts = Post.objects.select_related('author', 'group')
     page_obj = my_paginator(posts, request)
@@ -126,20 +122,18 @@ def follow_index(request):
 
 @login_required
 def profile_follow(request, username):
-    user_to_follow = User.objects.get(username=username)
-    if (Follow.objects.filter
-        (user_id=request.user.id, author_id=user_to_follow.id).exists()
-            or request.user.id == user_to_follow.id):
-        return redirect('posts:profile', user_to_follow)
-    Follow.objects.create(
-        user_id=request.user.id,
-        author_id=user_to_follow.id)
-    return redirect('posts:profile', user_to_follow)
+    author = get_object_or_404(User, username=username)
+    if author.id != request.user.id:
+        Follow.objects.get_or_create(
+            user_id=request.user.id,
+            author_id=author.id
+        )
+    return redirect('posts:profile', author)
 
 
 @login_required
 def profile_unfollow(request, username):
-    user_to_unfollow = User.objects.get(username=username)
+    user_to_unfollow = get_object_or_404(User, username=username)
     Follow.objects.filter(
         user_id=request.user.id,
         author_id=user_to_unfollow.id).delete()

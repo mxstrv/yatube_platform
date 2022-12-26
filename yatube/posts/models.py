@@ -55,7 +55,10 @@ class Comment(models.Model):
         User,
         on_delete=models.CASCADE,
     )
-    text = models.TextField()
+    text = models.TextField(
+        verbose_name='Комментарий',
+        help_text='Текст нового комментария',
+    )
     pub_date = models.DateTimeField(auto_now_add=True)
 
 
@@ -72,3 +75,10 @@ class Follow(models.Model):
         related_name='following',
         on_delete=models.CASCADE,
     )
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['user', 'author'],
+                name='unique connection',)
+        ]

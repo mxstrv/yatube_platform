@@ -136,3 +136,9 @@ class PostCreateTest(TestCase):
         self.assertRedirects(guest_comment,
                              '/auth/login/?next=/posts/1/comment/')
         self.assertEqual(Comment.objects.count(), 1)
+        self.assertEqual(
+            comment._meta.get_field('text').verbose_name,
+            'Комментарий')
+        self.assertEqual(
+            comment._meta.get_field('text').help_text,
+            'Текст нового комментария')
