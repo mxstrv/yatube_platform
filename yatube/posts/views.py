@@ -35,6 +35,7 @@ def profile(request, username):
     else:
         following = False
     context = {
+        'posts_count': posts.count(),
         'posts': posts,
         'page_obj': page_obj,
         'author': author,
