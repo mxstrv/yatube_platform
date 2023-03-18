@@ -1,4 +1,4 @@
-# yatube_project
+# yatube_platform
 
 Hi! Yatube is a social network for bloggers. This is my learning project at Yandex.Praktikum, November 2022.
 
